@@ -84,8 +84,9 @@ public class AuthenticationImpl implements IAuthenticationService {
 
         User user = (User) authentication.getPrincipal();
         AuthenticationResponse authenticationResponse = userMapper.toAuthenticationResponse(user);
-        authenticationResponse.setToken(jwtService.generateToken(user, UUID.randomUUID().toString(),false));
-
+        String refresh = UUID.randomUUID().toString();
+        authenticationResponse.setToken(jwtService.generateToken(user,refresh ,false));
+        authenticationResponse.setRefreshToken(refresh);
         return authenticationResponse;
     }
 
@@ -104,7 +105,9 @@ public class AuthenticationImpl implements IAuthenticationService {
                 user = userRepository.save(user);
             }
             AuthenticationResponse authenticationResponse = userMapper.toAuthenticationResponse(user);
-            authenticationResponse.setToken(jwtService.generateToken(user,UUID.randomUUID().toString(),false));
+            String refresh = UUID.randomUUID().toString();
+            authenticationResponse.setToken(jwtService.generateToken(user,refresh ,false));
+            authenticationResponse.setRefreshToken(refresh);
             return authenticationResponse;
         } catch (FirebaseAuthException e)
         {

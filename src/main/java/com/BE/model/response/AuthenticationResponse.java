@@ -24,6 +24,7 @@ public class AuthenticationResponse {
      @Enumerated(value = EnumType.STRING)
      RoleEnum role;
      String token;
+     String refreshToken;
 
 }
 
