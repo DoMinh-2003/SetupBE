@@ -15,4 +15,9 @@ public class DateNowUtils {
         return localDateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
     }
 
+    public LocalDateTime getCurrentDateTimeHCM() {
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        return zonedDateTime.toLocalDateTime();
+    }
+
 }

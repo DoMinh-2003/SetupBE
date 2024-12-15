@@ -1,4 +1,4 @@
-package com.BE.service;
+package com.BE.service.implementServices;
 
 
 import com.BE.enums.RoleEnum;
@@ -11,6 +11,10 @@ import com.BE.model.response.AuthenResponse;
 import com.BE.model.response.AuthenticationResponse;
 import com.BE.model.entity.User;
 import com.BE.repository.UserRepository;
+import com.BE.service.EmailService;
+import com.BE.service.JWTService;
+import com.BE.service.RefreshTokenService;
+import com.BE.service.interfaceServices.IAuthenticationService;
 import com.BE.utils.AccountUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
@@ -22,13 +26,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import springfox.documentation.annotations.Cacheable;
 
 import java.util.UUID;
 
 
 @Service
-public class AuthenticationService  {
+public class AuthenticationImpl implements IAuthenticationService {
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -145,21 +148,22 @@ public class AuthenticationService  {
         return name;
     }
 
+    @Override
     public AuthenResponse refresh(RefreshRequest refreshRequest) {
         AuthenResponse authenResponse = new AuthenResponse();
-        String refresh = jwtService.getRefreshClaim(refreshRequest.getToken());
-        if (refreshTokenService.validateRefreshToken(refresh)) {
-            System.out.println(refreshTokenService.getIdFromRefreshToken(refresh));
-            User user = userRepository.findById(refreshTokenService.getIdFromRefreshToken(refresh)).orElseThrow(() -> new BadRequestException("User Not Found"));
-            authenResponse.setToken(jwtService.generateToken(user,refresh,true));
+//        String refresh = jwtService.getRefreshClaim(refreshRequest.getToken());
+        if (refreshTokenService.validateRefreshToken(refreshRequest.getRefreshToken())) {
+            System.out.println(refreshTokenService.getIdFromRefreshToken(refreshRequest.getRefreshToken()));
+            User user = userRepository.findById(refreshTokenService.getIdFromRefreshToken(refreshRequest.getRefreshToken())).orElseThrow(() -> new BadRequestException("User Not Found"));
+            authenResponse.setToken(jwtService.generateToken(user, refreshRequest.getRefreshToken(),true));
         }else{
             throw new InvalidRefreshTokenException("Invalid refresh token");
         }
         return authenResponse;
     }
-
+    @Override
     public void logout(RefreshRequest refreshRequest) {
-        String refresh = jwtService.getRefreshClaim(refreshRequest.getToken());
+        String refresh = refreshRequest.getRefreshToken();
         refreshTokenService.deleteRefreshToken(refresh);
     }
 }

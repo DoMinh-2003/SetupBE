@@ -21,7 +21,8 @@ import java.util.UUID;
 @Service
 public class JWTService {
 
-    private final String SECRET_KEY = "HT4bb6d1dfbafb64a681139d1586b6f1160d18159afd57c8c79136d7490630407c";
+    @Value("${spring.secretkey}")
+    private String SECRET_KEY;
 
     @Value("${spring.duration}")
     private long DURATION;
@@ -35,7 +36,7 @@ public class JWTService {
 
 
 
-    String generateToken(User user, String refresh, boolean isRefresh) {
+    public String generateToken(User user, String refresh, boolean isRefresh) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
@@ -63,7 +64,7 @@ public class JWTService {
     }
 
 
-    String generateToken(User user) {
+    public String generateToken(User user) {
 
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
@@ -85,6 +86,23 @@ public class JWTService {
             throw new RuntimeException(e);
         }
     }
+    public User getUserByToken(String token) {
+        try {
+            JWSObject jwsObject = JWSObject.parse(token);
+
+            MACVerifier verifier = new MACVerifier(SECRET_KEY.getBytes());
+            if (!jwsObject.verify(verifier)) {
+                throw new RuntimeException("Invalid token signature");
+            }
+
+            JWTClaimsSet claimsSet = JWTClaimsSet.parse(jwsObject.getPayload().toJSONObject());
+            String username = claimsSet.getSubject();
+
+            return userRepository.findByUsername(username).orElse(null);
+        } catch (ParseException | JOSEException e) {
+            throw new RuntimeException("Error parsing token", e);
+        }
+    }
 
     public String getRefreshClaim(String token) {
         try {
@@ -104,7 +122,7 @@ public class JWTService {
 
 
 
-    }
+}
 
 
 
