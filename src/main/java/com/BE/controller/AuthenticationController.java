@@ -4,8 +4,7 @@ package com.BE.controller;
 import com.BE.model.entity.User;
 import com.BE.model.request.*;
 import com.BE.model.response.AuthenticationResponse;
-import com.BE.service.implementServices.AuthenticationImpl;
-import com.BE.service.JWTService;
+import com.BE.service.interfaceServices.IAuthenticationService;
 import com.BE.utils.ResponseHandler;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -20,10 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
 
     @Autowired
-    AuthenticationImpl authenticationImpl;
-
-    @Autowired
-    JWTService jwtService;
+    IAuthenticationService iAuthenticationService;
 
     @Autowired
     ResponseHandler responseHandler;
@@ -32,38 +28,38 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     public ResponseEntity refresh( @RequestBody RefreshRequest refreshRequest){
-        return responseHandler.response(200, "Refresh Token success!", authenticationImpl.refresh(refreshRequest));
+        return responseHandler.response(200, "Refresh Token success!", iAuthenticationService.refresh(refreshRequest));
     }
 
     @PostMapping("/logout")
     public ResponseEntity logout(@RequestBody RefreshRequest refreshRequest){
-        authenticationImpl.logout(refreshRequest);
+        iAuthenticationService.logout(refreshRequest);
         return ResponseEntity.ok( "Logout success!");
     }
 
     @PostMapping("/register")
     public ResponseEntity<User> register(@Valid @RequestBody AuthenticationRequest user){
-        return responseHandler.response(200, "Register success!", authenticationImpl.register(user));
+        return responseHandler.response(200, "Register success!", iAuthenticationService.register(user));
     }
     @PostMapping("/login")
     public  ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequestDTO loginRequestDTO){
-        return responseHandler.response(200, "Login success!", authenticationImpl.authenticate(loginRequestDTO));
+        return responseHandler.response(200, "Login success!", iAuthenticationService.authenticate(loginRequestDTO));
     }
 
     @PostMapping("/login-google")
     private ResponseEntity checkLoginGoogle(@RequestBody LoginGoogleRequest loginGGRequest){
-        return responseHandler.response(200, "Login Google success!", authenticationImpl.loginGoogle(loginGGRequest));
+        return responseHandler.response(200, "Login Google success!", iAuthenticationService.loginGoogle(loginGGRequest));
     }
 
     @PostMapping("forgot-password")
     public ResponseEntity forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
-        authenticationImpl.forgotPasswordRequest(forgotPasswordRequest.getEmail());
+        iAuthenticationService.forgotPasswordRequest(forgotPasswordRequest.getEmail());
         return ResponseEntity.ok( "Forgot Password successfully");
     }
 
     @PatchMapping("reset-password")
     public ResponseEntity resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
-        authenticationImpl.resetPassword(resetPasswordRequest);
+        iAuthenticationService.resetPassword(resetPasswordRequest);
         return ResponseEntity.ok( "Reset Password successfully");
     }
 
@@ -75,7 +71,7 @@ public class AuthenticationController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin-only")
     public ResponseEntity admin(){
-        return ResponseEntity.ok(authenticationImpl.admin());
+        return ResponseEntity.ok(iAuthenticationService.admin());
     }
 
     @PatchMapping("/status")
